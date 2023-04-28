@@ -15,6 +15,7 @@ from sensor_msgs.msg import Image as imgMsg
 # others
 from datetime import datetime
 import json
+from pathlib import Path
 
 class KeyController(Node):
 
@@ -29,6 +30,9 @@ class KeyController(Node):
 
     def __init__(self):
         super().__init__("KeyControl")
+        if not Path(self.CONFIG_FILE).exists():
+            with open(self.CONFIG_FILE, "w+") as cfg_file:
+                json.dump({}, cfg_file)
         self.bridge = CvBridge()
         self.sub = {
             "IMG": self.create_subscription(imgMsg, self.TOPIC["IMG"], self.show, 10)

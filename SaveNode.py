@@ -14,6 +14,7 @@ from sensor_msgs.msg import Image as imgMsg
 # others
 from datetime import datetime
 import json
+from pathlib import Path
 
 class SaveNode(Node):
     
@@ -31,6 +32,9 @@ class SaveNode(Node):
     
     def __init__(self):
         super().__init__("SaveNode")
+        if not Path(self.CONFIG_FILE).exists():
+            with open(self.CONFIG_FILE, "w+") as cfg_file:
+                json.dump({}, cfg_file)
         self.create_sub_pub()
         self.load_config()
         self.bridge = CvBridge()
