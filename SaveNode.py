@@ -95,15 +95,15 @@ class SaveNode(Node):
     def save(self, msg:imgMsg):
         if self.enable_save:
             img = self.bridge.imgmsg_to_cv2(msg)
-            name = self.img_save_path + "/bild_" +  str(self.count) + ".jpg"
+            name = self.save_path + "/bild_" +  str(self.save_file_count) + ".jpg"
             success = cv2.imwrite(name, img)
-            self.count = self.count + 1
-            self.log(f"saved img to {name}")
+            self.save_file_count = self.save_file_count + 1
+            self.log(f"saved img to {name} " + "successfull" if success else "failed")
    
     def load(self):
         if self.enable_load:
-            msg = imgMsg()
-            msg.data = cv2.imread(self.load_path)
+            img = cv2.imread(self.load_path, cv2.IMREAD_GRAYSCALE)
+            msg = self.bridge.cv2_to_imgmsg(img, encoding="mono8")
             self.pub["IMG"].publish(msg)
             self.log(f"published img from {self.load_path}")
     
