@@ -7,16 +7,12 @@ import rclpy as ros
 from rclpy.node import Node
 
 # ros_msg
-from std_msgs.msg import Float32 as floatMsg
-from std_msgs.msg import Int32 as intMsg
 from std_msgs.msg import Bool as boolMsg
 from std_msgs.msg import String as strMsg
 from sensor_msgs.msg import Image as imgMsg
 
 # others
-import numpy as np
 from datetime import datetime
-from lic import lic
 import json
 
 class SaveNode(Node):
