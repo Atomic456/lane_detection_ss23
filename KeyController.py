@@ -123,11 +123,11 @@ class KeyController(Node):
             self.steerMax = json_data["steerMax"] if "steerMax" in json_data else 0.8
             self.steerMin = json_data["steerMin"] if "steerMin" in json_data else -0.8
             self.steerInc = json_data["steerInc"] if "steerInc" in json_data else 0.2
-            self.steerDec = json_data["steerDec"] if "steerDec" in json_data else -0.2
+            self.steerDec = json_data["steerDec"] if "steerDec" in json_data else 0.2
             self.speedMax = json_data["speedMax"] if "speedMax" in json_data else 1.0
             self.speedMin = json_data["speedMin"] if "speedMin" in json_data else -1.0
             self.speedInc = json_data["speedInc"] if "speedInc" in json_data else 0.25
-            self.speedDec = json_data["speedDec"] if "speedDec" in json_data else -0.25
+            self.speedDec = json_data["speedDec"] if "speedDec" in json_data else 0.25
 
     def log(self, log_text):
         if self.enable_debug:
@@ -158,37 +158,36 @@ class KeyController(Node):
     def show(self, msg:imgMsg):
         image = self.bridge.imgmsg_to_cv2(msg)
         cv2.imshow("Bild-Autofahren", image)
-        while ros.ok():
-            key = cv2.pollKey()
+        key = cv2.pollKey()
 
-            if (key != -1):
-                match (chr(key)):
-                    case 'w'|'W': 
-                        self.speed += self.speedInc if self.enable_key_control and not self.emergency_disable else 0
-                    case 's'|'S':
-                        self.speed -= self.speedDec if self.enable_key_control and not self.emergency_disable else 0
-                    case 'a'|'A':
-                        self.steering -= self.speedDec if self.enable_key_control and not self.emergency_disable else 0
-                    case 'd'|'D':
-                        self.steering += self.steerInc if self.enable_key_control and not self.emergency_disable else 0
-                    case 'r'|'R':
-                        self.stop()
-                    case 'q'|'Q':
-                        self.steering = 0.0
-                    case 'x'|'X':
-                        self.enable_key_control = not self.enable_key_control
-                        self.log("en" if self.enable_key_control else "dis" + "abled wasd controll")
-                    case ' ':
-                        self.emergency_disable = not self.emergency_disable
-                        self.stop()
-                        self.log("en" if self.emergency_disable else "dis" + "abled emergency stop")
+        if (key != -1):
+            match (chr(key)):
+                case 'w'|'W': 
+                    self.speed += self.speedInc if self.enable_key_control and not self.emergency_disable else 0
+                case 's'|'S':
+                    self.speed -= self.speedDec if self.enable_key_control and not self.emergency_disable else 0
+                case 'a'|'A':
+                    self.steering -= self.steerDec if self.enable_key_control and not self.emergency_disable else 0
+                case 'd'|'D':
+                    self.steering += self.steerInc if self.enable_key_control and not self.emergency_disable else 0
+                case 'r'|'R':
+                    self.stop()
+                case 'q'|'Q':
+                    self.steering = 0.0
+                case 'x'|'X':
+                    self.enable_key_control = not self.enable_key_control
+                    self.log("en" if self.enable_key_control else "dis" + "abled wasd controll")
+                case ' ':
+                    self.emergency_disable = not self.emergency_disable
+                    self.stop()
+                    self.log("en" if self.emergency_disable else "dis" + "abled emergency stop")
 
-                self.speed = self.speedMax if self.speed > self.speedMax else self.speed if self.speed > self.speedMin else self.speedMin
-                self.steering = self.steerMax if self.steering > self.steerMax else self.steering if self.steering > self.steerMin else self.steerMin
+            self.speed = self.speedMax if self.speed > self.speedMax else self.speed if self.speed > self.speedMin else self.speedMin
+            self.steering = self.steerMax if self.steering > self.steerMax else self.steering if self.steering > self.steerMin else self.steerMin
 
-            if self.enable_key_control and not self.emergency_disable:
-                self.send_speed()
-                self.send_steer()
+        if self.enable_key_control and not self.emergency_disable:
+            self.send_speed()
+            self.send_steer()
 
 def main(args=None):
     ros.init()

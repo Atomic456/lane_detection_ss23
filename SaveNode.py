@@ -39,6 +39,7 @@ class SaveNode(Node):
         self.load_config()
         self.bridge = CvBridge()
         self.save_file_count = 1
+        self.load_file_count = 1
         self.log("initilized")
     
     def save_config(self):
@@ -55,7 +56,7 @@ class SaveNode(Node):
     def load_config(self):
         with open(self.CONFIG_FILE, "r") as cfg_file:
             json_data = json.load(cfg_file)
-            self.load_path = json_data["load_path"] if "load_path" in json_data else "/home/user/pictures/bild1.jpg"
+            self.load_path = json_data["load_path"] if "load_path" in json_data else "/home/user/pictures"
             self.save_path = json_data["save_path"] if "save_path" in json_data else "/home/user/pictures"
             self.enable_save = "do_save" in json_data and json_data["do_save"]
             self.enable_load = "do_load" in json_data and json_data["do_load"]
@@ -101,15 +102,18 @@ class SaveNode(Node):
             img = self.bridge.imgmsg_to_cv2(msg)
             name = self.save_path + "/bild_" +  str(self.save_file_count) + ".jpg"
             success = cv2.imwrite(name, img)
-            self.save_file_count = self.save_file_count + 1
+            self.save_file_count += 1
             self.log(f"saved img to {name} " + "successfull" if success else "failed")
    
     def load(self):
         if self.enable_load:
-            img = cv2.imread(self.load_path, cv2.IMREAD_GRAYSCALE)
+            if not Path(self.load_path + f"/bild_{self.load_file_count}.jpg").exists():
+                self.load_file_count = 1
+            img = cv2.imread(self.load_path+f"/bild_{self.load_file_count}.jpg", cv2.IMREAD_GRAYSCALE)
             msg = self.bridge.cv2_to_imgmsg(img, encoding="mono8")
+            self.load_file_count += 1
             self.pub["IMG"].publish(msg)
-            self.log(f"published img from {self.load_path}")
+            self.log(f"published img from {self.load_path}/bild_{self.load_file_count}.jpg")
     
     def log(self, log_text):
         if self.enable_debug:

@@ -9,90 +9,6 @@ from cv_bridge import CvBridge
 import numpy as np
 from datetime import date
 
-class SaveNode(Node):
-    def __init__(self):
-        super().__init__("SaveNode")
-        self.bridge = CvBridge()
-        self.imageSub = self.create_subscription(Image, "/perception/image_gray8", self.save, 10)
-        self.count = 1
-        
-    def save(self, msg:Image):
-        image = self.bridge.imgmsg_to_cv2(msg)
-        name = "/home/user/pictures/bild_" +  str(self.count) + ".jpg"
-        success = cv2.imwrite(name, image)
-        self.count = self.count + 1
-        print(f"saving image to {name} successfull" if success else f"saving image to {name} failed")
-
-class KeyControl(Node):
-    def __init__(self):
-        super().__init__("KeyControl")
-        self.bridge = CvBridge()
-        self.imageSub = self.create_subscription(Image, "/perception/image_gray8", self.show, 10)
-        self.speed_publisher = self.create_publisher(Float32, "/speed/speed", 10)
-        self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
-        self.wasdControl = False
-        self.emergencyDisable = False
-
-    def wasd_reset(self):
-        self.wasd_speed = 0.0
-        self.wasd_steering = 0.0
-
-        self.speed_publisher.publish(Float32())
-        self.steering_publisher.publish(Float32())
-
-    def clamp(self, n, min, max):
-        if n > max:
-            return max
-        elif n < min:
-            return min
-        else:
-            return n
-
-
-    def show(self, msg:Image):
-        image = self.bridge.imgmsg_to_cv2(msg)
-        cv2.imshow("Bild-Autofahren", image)
-        while True:
-            key = cv2.pollKey()
-            speed_msg = Float32()
-            steering_msg = Float32()
-
-            # leerzeichen für not-aus
-            if (key == 32):
-                self.emergencyDisable = not self.emergencyDisable
-                self.wasd_reset()
-                print("emergencyDisable is now " + str(self.emergencyDisable))
-
-            # X für wasd-Steuerung an und aus
-            if (key != -1 and (chr(key) == 'x' or chr(key) == 'X')):
-                self.wasdControl = not self.wasdControl
-                self.wasd_reset()
-                print("wasdControl is now " + str(self.wasdControl))
-
-            if (self.wasdControl is False or self.emergencyDisable is True):
-                return
-
-            if (key != -1):
-                match (chr(key)):
-                    case 'w'|'W': 
-                        self.wasd_speed += 0.15
-                    case 's'|'S':
-                        self.wasd_speed -= 0.15
-                    case 'a'|'A':
-                        self.wasd_steering -= 0.2
-                    case 'd'|'D':
-                        self.wasd_steering += 0.2
-
-                self.wasd_speed = self.clamp(self.wasd_speed, -1.0, 1.0)
-                self.wasd_steering = self.clamp(self.wasd_steering, -0.8, 0.8)
-
-                speed_msg.data = self.wasd_speed
-                steering_msg.data = self.wasd_steering
-                self.speed_publisher.publish(speed_msg) #damit ist speed ein toggle
-                self.steering_publisher.publish(steering_msg) #damti ist steering ein toggle
-
-                print("Input received: " + str(key) + ", message sent: Speed: " + str(speed_msg.data) + ", Steering: " + str(steering_msg.data))   
-
 class LanePrediction(Node):
     
     def __init__(self):
@@ -138,7 +54,7 @@ class LanePrediction(Node):
 
         input_image = self.bridge.imgmsg_to_cv2(img)
         gray_scale_copy = input_image
-#        cv2.imshow(gray_scale_copy)
+        cv2.imshow("original", gray_scale_copy)
 
         # Noise reduction
         blured_img = cv2.GaussianBlur(gray_scale_copy, (3,3), 0)
@@ -166,9 +82,9 @@ class LanePrediction(Node):
             image_region_interrest = cv2.fillPoly(image_mask, cycle, 255)
             masked_of_image = cv2.bitwise_and(edge_detection_img, image_region_interrest)
             window_name = "masked_image" + str(i)
-            #cv2.imshow(window_name, masked_of_image)
+            cv2.imshow(window_name, masked_of_image)
 
-            # extrackt stright lines
+            # extrackt streight lines
             lane_lines = cv2.HoughLinesP(masked_of_image, rho=2, theta=np.pi/180, threshold=13, lines=np.array([]), minLineLength=18, maxLineGap=8)
 
             left_lane_line = []
@@ -247,8 +163,6 @@ class LanePrediction(Node):
 
 def main(args=None):
     ros.init()
-#    ros.spin(KeyControl())
-#    ros.spin(SaveNode())
     ros.spin(LanePrediction())
     ros.shutdown()
 
