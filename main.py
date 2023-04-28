@@ -58,10 +58,12 @@ class LanePrediction(Node):
 
         # Noise reduction
         blured_img = cv2.GaussianBlur(gray_scale_copy, (3,3), 0)
+        cv2.imshow("blured", blured_img)
 
         # Convert gray scale image to binary image
         threshold, binary_img = cv2.threshold(blured_img, 235, 255, cv2.THRESH_BINARY)
-        
+        cv2.imshow("binary", binary_img)
+
         # Run edge detection
         edge_detection_img = cv2.Canny(binary_img, 200, 255)
 
@@ -73,7 +75,7 @@ class LanePrediction(Node):
         ])
     
         steering_angles = []
-        steerin_wights = [40,45,15]
+        steering_wights = [40,45,15]
         
         i = 0
         for cycle in region_of_interest:
@@ -92,7 +94,7 @@ class LanePrediction(Node):
             if lane_lines is not None:
                 for line in lane_lines:
                     x1, y1, x2, y2 = line.reshape(4)
-                    line_parameters = np.polyfit((x1,x2), (y1,y2), 1)
+                    line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
                     if(m < 0):
                         left_lane_line.append((m,b))
@@ -147,11 +149,11 @@ class LanePrediction(Node):
         print(steering_angles)
         steering_input = 0
         div = 1
-        for i in range(2):
+        for i,angle in enumerate(steering_angles):
             angle = steering_angles[i]
             if angle != -100:
-                steering_input += angle * steerin_wights[i]
-                div += steerin_wights[i]
+                steering_input += angle * steering_wights[i]
+                div += steering_wights[i]
     
         msg = Float32()
         if div != 1:
@@ -159,6 +161,7 @@ class LanePrediction(Node):
         msg.data = steering_input / div
         print(msg.data)
         self.steering_publisher.publish(msg)
+        cv2.waitKey(1)
 
 
 def main(args=None):

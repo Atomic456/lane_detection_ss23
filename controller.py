@@ -5,6 +5,7 @@ from rclpy.node import Node
 # ros_msg
 from std_msgs.msg import Bool as boolMsg
 from std_msgs.msg import String as strMsg
+from std_msgs.msg import Float32 as floatMsg
 
 # others
 from datetime import datetime
@@ -16,6 +17,7 @@ class Controller(Node):
         "LOAD_PATH": "/config/nodes/save_node/load_path",
         "DO_SAVE": "/config/nodes/save_node/enable_saveing",
         "DO_LOAD": "/config/nodes/save_node/enabe_loading",
+        "LOAD_FRQ": "/config/nodes/save_node/load_frequenz",
         "DEBUG": "/config/nodes/save_node/enable_logging"
     }
     
@@ -31,6 +33,7 @@ class Controller(Node):
             "LOAD_PATH": self.create_publisher(strMsg, self.TOPIC["LOAD_PATH"], 10),
             "DO_SAVE": self.create_publisher(boolMsg, self.TOPIC["DO_SAVE"], 10),
             "DO_LOAD": self.create_publisher(boolMsg, self.TOPIC["DO_LOAD"], 10),
+            "LOAD_FRQ": self.create_publisher(floatMsg, self.TOPIC["LOAD_FRQ"], 10),
             "DEBUG": self.create_publisher(boolMsg, self.TOPIC["DEBUG"], 10),
         }
     
@@ -48,10 +51,15 @@ SAVE_PATH: set the path for images to be stored to
 LOAD_PATH: set the path where the image is published from
 DO_SAVE:   enables image saveing
 DO_LOAD:   enables image publishing for testing issues
+LOAD_FRQ:  set load frequenz
 DEBUG:     enables debug prints\n""")
             if selection in ["SAVE_PATH", "LOAD_PATH"]:
                 msg = strMsg()
                 msg.data = input("What is the path? ")
+                self.pub[selection].publish(msg)
+            elif selection == "LOAD_FRQ":
+                msg = floatMsg()
+                msg.data = float(input("Please enter the frequenz as float "))
                 self.pub[selection].publish(msg)
             else:
                 msg = boolMsg()
