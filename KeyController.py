@@ -25,6 +25,14 @@ class KeyController(Node):
         "IMG": "/perception/image_gray8",
         "SPEED": "/speed/speed",
         "STEER": "/steering/steering",
+        "SPEED_MAX": "/config/nodes/key_controller/speed_max",
+        "SPEED_MIN": "/config/nodes/key_controller/speed_min",
+        "SPEED_INC": "/config/nodes/key_controller/speed_inc",
+        "SPEED_DEC": "/config/nodes/key_controller/speed_dec",
+        "STEER_MAX": "/config/nodes/key_controller/steer_max",
+        "STEER_MIN": "/config/nodes/key_controller/steer_min",
+        "STEER_INC": "/config/nodes/key_controller/steer_inc",
+        "STEER_DEC": "/config/nodes/key_controller/steer_dec",
         "LOG": "/log/nodes/key_controller"
     }
 
@@ -35,7 +43,15 @@ class KeyController(Node):
                 json.dump({}, cfg_file)
         self.bridge = CvBridge()
         self.sub = {
-            "IMG": self.create_subscription(imgMsg, self.TOPIC["IMG"], self.show, 10)
+            "IMG": self.create_subscription(imgMsg, self.TOPIC["IMG"], self.show, 10),
+            "SPEED_MAX": self.create_subscription(floatMsg, self.TOPIC["SPEED_MAX"], self.set_speed_max, 10),
+            "SPEED_MIN": self.create_subscription(floatMsg, self.TOPIC["SPEED_MIN"], self.set_speed_min, 10),
+            "SPEED_INC": self.create_subscription(floatMsg, self.TOPIC["SPEED_INC"], self.set_speed_inc, 10),
+            "SPEED_DEC": self.create_subscription(floatMsg, self.TOPIC["SPEED_DEC"], self.set_speed_dec, 10),
+            "STEER_MAX": self.create_subscription(floatMsg, self.TOPIC["STEER_MAX"], self.set_steer_max, 10),
+            "STEER_MIN": self.create_subscription(floatMsg, self.TOPIC["STEER_MIN"], self.set_steer_min, 10),
+            "STEER_INC": self.create_subscription(floatMsg, self.TOPIC["STEER_INC"], self.set_steer_inc, 10),
+            "STEER_DEC": self.create_subscription(floatMsg, self.TOPIC["STEER_DEC"], self.set_steer_dec, 10)
         }
         self.pub = {
             "SPEED": self.create_publisher(floatMsg, self.TOPIC["SPEED"], 10),
@@ -49,11 +65,51 @@ class KeyController(Node):
         self.enable_debug = msg.data
         self.save_config()
 
+    def set_speed_max(self, msg:floatMsg):
+        self.speedMax = msg.data
+        self.save_config()
+
+    def set_speed_min(self, msg:floatMsg):
+        self.speedMin = msg.data
+        self.save_config()
+
+    def set_speed_inc(self, msg:floatMsg):
+        self.speedInc = msg.data
+        self.save_config()
+
+    def set_speed_dec(self, msg:floatMsg):
+        self.speedDec = msg.data
+        self.save_config()
+
+    def set_steer_max(self, msg:floatMsg):
+        self.steerMax = msg.data
+        self.save_config()
+
+    def set_steer_min(self, msg:floatMsg):
+        self.steerMin = msg.data
+        self.save_config()
+
+    def set_steer_inc(self, msg:floatMsg):
+        self.steerInc = msg.data
+        self.save_config()
+
+    def set_steer_dec(self, msg:floatMsg):
+        self.steerDec = msg.data
+        self.save_config()
+
     def save_config(self):
         json_data = {
             "debug": self.enable_debug,
-            "keyControl": self.wasdControl,
-            "disable": self.emergencyDisable
+            "keyControl": self.enable_key_control,
+            "disable": self.emergency_disable,
+            "speedMax": self.speedMax,
+            "speedMin": self.speedMin,
+            "speedInc": self.speedInc,
+            "speedDec": self.speedDec,
+            "steerMax": self.steerMax,
+            "steerMin": self.steerMin,
+            "steerInc": self.steerInc,
+            "steerDec": self.steerDec
         }
         with open(self.CONFIG_FILE, "w") as cfg_file:
             json.dump(json_data, cfg_file)
@@ -62,8 +118,16 @@ class KeyController(Node):
         with open(self.CONFIG_FILE, "r") as cfg_file:
             json_data = json.load(cfg_file)
             self.enable_debug = not "debug" in json_data or json_data["debug"]
-            self.wasdControl = not "keyControll" in json_data or json_data["keyControll"]
-            self.emergencyDisable = "disable" in json_data and json_data["disable"]
+            self.enable_key_control = not "keyControll" in json_data or json_data["keyControll"]
+            self.emergency_disable = "disable" in json_data and json_data["disable"]
+            self.steerMax = json_data["steerMax"] if "steerMax" in json_data else 0.8
+            self.steerMin = json_data["steerMin"] if "steerMin" in json_data else -0.8
+            self.steerInc = json_data["steerInc"] if "steerInc" in json_data else 0.2
+            self.steerDec = json_data["steerDec"] if "steerDec" in json_data else -0.2
+            self.speedMax = json_data["speedMax"] if "speedMax" in json_data else 1.0
+            self.speedMin = json_data["speedMin"] if "speedMin" in json_data else -1.0
+            self.speedInc = json_data["speedInc"] if "speedInc" in json_data else 0.25
+            self.speedDec = json_data["speedDec"] if "speedDec" in json_data else -0.25
 
     def log(self, log_text):
         if self.enable_debug:
@@ -73,23 +137,23 @@ class KeyController(Node):
             print(msg.data)
 
     def stop(self):
-        self.wasd_speed = 0.0
-        self.wasd_steering = 0.0
+        self.speed = 0.0
+        self.steering = 0.0
         self.log("reset")
-        self.speed()
-        self.steer()
+        self.send_speed()
+        self.send_steer()
 
-    def steer(self):
+    def send_steer(self):
         msg = floatMsg()
-        msg.data = self.wasd_steering
+        msg.data = self.steering
         self.pub["STEER"].publish(msg)
-        self.log(f"steering value={self.wasd_steering}")
+        self.log(f"steering value={self.steering}")
 
-    def speed(self):
+    def send_speed(self):
         msg = floatMsg()
-        msg.data = self.wasd_speed
+        msg.data = self.speed
         self.pub["SPEED"].publish(msg)
-        self.log(f"speed value={self.wasd_speed}")
+        self.log(f"speed value={self.speed}")
 
     def show(self, msg:imgMsg):
         image = self.bridge.imgmsg_to_cv2(msg)
@@ -100,31 +164,31 @@ class KeyController(Node):
             if (key != -1):
                 match (chr(key)):
                     case 'w'|'W': 
-                        self.wasd_speed += 0.15 if self.wasdControl and not self.emergencyDisable else 0
+                        self.speed += self.speedInc if self.enable_key_control and not self.emergency_disable else 0
                     case 's'|'S':
-                        self.wasd_speed -= 0.15 if self.wasdControl and not self.emergencyDisable else 0
+                        self.speed -= self.speedDec if self.enable_key_control and not self.emergency_disable else 0
                     case 'a'|'A':
-                        self.wasd_steering -= 0.2 if self.wasdControl and not self.emergencyDisable else 0
+                        self.steering -= self.speedDec if self.enable_key_control and not self.emergency_disable else 0
                     case 'd'|'D':
-                        self.wasd_steering += 0.2 if self.wasdControl and not self.emergencyDisable else 0
+                        self.steering += self.steerInc if self.enable_key_control and not self.emergency_disable else 0
                     case 'r'|'R':
                         self.stop()
                     case 'q'|'Q':
-                        self.wasd_steering = 0.0
+                        self.steering = 0.0
                     case 'x'|'X':
-                        self.wasdControl = not self.wasdControl
-                        self.log("en" if self.wasdControl else "dis" + "abled wasd controll")
+                        self.enable_key_control = not self.enable_key_control
+                        self.log("en" if self.enable_key_control else "dis" + "abled wasd controll")
                     case ' ':
-                        self.emergencyDisable = not self.emergencyDisable
+                        self.emergency_disable = not self.emergency_disable
                         self.stop()
-                        self.log("en" if self.emergencyDisable else "dis" + "abled emergency stop")
+                        self.log("en" if self.emergency_disable else "dis" + "abled emergency stop")
 
-                self.wasd_speed = 1 if self.wasd_speed > 1 else self.wasd_speed if self.wasd_speed > -1 else -1
-                self.wasd_steering = 0.8 if self.wasd_steering > 0.8 else self.wasd_steering if self.wasd_steering > -0.8 else -0.8
+                self.speed = self.speedMax if self.speed > self.speedMax else self.speed if self.speed > self.speedMin else self.speedMin
+                self.steering = self.steerMax if self.steering > self.steerMax else self.steering if self.steering > self.steerMin else self.steerMin
 
-            if self.wasdControl and not self.emergencyDisable:
-                self.speed()
-                self.steer()
+            if self.enable_key_control and not self.emergency_disable:
+                self.send_speed()
+                self.send_steer()
 
 def main(args=None):
     ros.init()
