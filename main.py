@@ -16,7 +16,7 @@ class LanePrediction(Node):
             self.bridge = CvBridge()
             self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
             self.create_subscription(Image, "/perception/image_gray8", self.e2e_steering, 10)
-
+            self.e2e_steering(None)
     
     
     def calc_steeringangle(self, lane_oriantation):
@@ -43,17 +43,32 @@ class LanePrediction(Node):
         x2 = int((y2-b)/m)
         return np.array([x1, y1, x2, y2])
 
+    def line_visualisation(self, img, lane_lines):
+        for point_array in lane_lines:
+            x1,y1,x2,y2 = point_array[0]
+            cv2.line(img, (x1,y1), (x2,y2), (0,255,0), 2)
+        return img
+
+    def end_visualisation(self, img, steering_value, region_of_interest):
+        height, width, _ = img.shape
+        width_value = int(np.interp(steering_value, [-1.0,1.0], [0,width]))
+        cv2.circle(img, (width_value,0), 5, (0,0,255), 20)
+        cv2.putText(img, "{:.2f}".format(steering_value), (width_value,40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 1)
+        for poly in region_of_interest:
+            poly = poly.reshape((-1, 1, 2))
+            cv2.polylines(img, [poly], True, (255,0,0), 1)
+        return img
 
     def e2e_steering(self, img:Image):
         #-------------------------- Variables for local testing --------------------------
-        #input_image = cv2.imread("/home/atomic/img/lane3.jpg")
-        #gray_scale_copy = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
+        input_image = cv2.imread("/home/vboxuser/Desktop/0.jpg")
+        gray_scale_copy = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
         #---------------------------------------------------------------------------------
 
         print("got an image")
 
-        input_image = self.bridge.imgmsg_to_cv2(img)
-        gray_scale_copy = input_image
+        #input_image = self.bridge.imgmsg_to_cv2(img)
+        #gray_scale_copy = input_image
         cv2.imshow("original", gray_scale_copy)
 
         # Noise reduction
@@ -77,6 +92,8 @@ class LanePrediction(Node):
         steering_angles = []
         steering_wights = [40,45,15]
         
+        visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
+
         i = 0
         for cycle in region_of_interest:
             # Apply region of interest to mask of the image
@@ -92,6 +109,7 @@ class LanePrediction(Node):
             left_lane_line = []
             right_lane_line = []
             if lane_lines is not None:
+                visualisation_img = self.line_visualisation(visualisation_img, lane_lines)
                 for line in lane_lines:
                     x1, y1, x2, y2 = line.reshape(4)
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
@@ -116,7 +134,7 @@ class LanePrediction(Node):
                 print("right lane")
                 avr_lane_line_paramters = np.average(right_lane_line, axis=0)
                 #-----------------------------------------------------------------------------------------------
-                #line_l = self.calc_coordinates(avr_lane_line_paramters)
+                #line_r = self.calc_coordinates(avr_lane_line_paramters)
                 #cv2.line(gray_scale_copy, (line_l[0], line_l[1]), (line_l[2], line_l[3]), (0,255,2), 3)
                 #-----------------------------------------------------------------------------------------------
                 lane_direction = self.calc_single_lane_direction(avr_lane_line_paramters)
@@ -132,7 +150,7 @@ class LanePrediction(Node):
                 #-----------------------------------------------------------------------------------------------
                 right_lane_line_avr = np.average(right_lane_line, axis = 0)
                 #-----------------------------------------------------------------------------------------------
-                #line_l = self.calc_coordinates(right_lane_line_avr)
+                #line_r = self.calc_coordinates(right_lane_line_avr)
                 #cv2.line(gray_scale_copy, (line_l[0], line_l[1]), (line_l[2], line_l[3]), (0,255,2), 3)
                 #-----------------------------------------------------------------------------------------------
                 lane_direction = self.calc_lane_direction(left_lane_line_avr, right_lane_line_avr)
@@ -160,8 +178,12 @@ class LanePrediction(Node):
             div -= 1
         msg.data = steering_input / div
         print(msg.data)
+
+        visualisation_img = self.end_visualisation(visualisation_img, msg.data, region_of_interest)
+        cv2.imshow("visualisation", visualisation_img)
+
         self.steering_publisher.publish(msg)
-        cv2.waitKey(1)
+        cv2.waitKey(0)
 
 
 def main(args=None):
