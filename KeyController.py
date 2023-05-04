@@ -23,8 +23,8 @@ class KeyController(Node):
 
     TOPIC = {
         "IMG": "/perception/image_gray8",
-        "SPEED": "/speed/speed",
-        "STEER": "/steering/steering",
+        "SPEED": "/pid/speed",
+        "STEER": "/pid/steering",
         "SPEED_MAX": "/config/nodes/key_controller/speed_max",
         "SPEED_MIN": "/config/nodes/key_controller/speed_min",
         "SPEED_INC": "/config/nodes/key_controller/speed_inc",
@@ -187,7 +187,7 @@ class KeyController(Node):
 
         if self.enable_key_control and not self.emergency_disable:
             self.send_speed()
-            self.send_steer()
+            #self.send_steer()
 
 def main(args=None):
     ros.init()

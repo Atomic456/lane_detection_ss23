@@ -14,14 +14,18 @@ class LanePrediction(Node):
     def __init__(self):
             super().__init__("lane_prediction")
             self.bridge = CvBridge()
-            self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
+            self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
             self.create_subscription(Image, "/perception/image_gray8", self.e2e_steering, 10)
-            self.e2e_steering(None)
-    
+            self.create_subscription(Float32, "/steering/steering", self.set_steering_out, 10)
+            self.steering_out = 0.0
+
+    def set_steering_out(self, msg:Float32):
+        self.steering_out = msg.data  
     
     def calc_steeringangle(self, lane_oriantation):
-        direction = lane_oriantation - 160
-        steering_input = direction / 160
+        lane_oriantation2 = 0 if lane_oriantation < 0 else lane_oriantation if lane_oriantation < 319 else 319
+        direction = lane_oriantation2 - 160
+        steering_input = direction / 200
         return steering_input
 
     def calc_single_lane_direction(self, avr_lane_paramters):
@@ -54,43 +58,43 @@ class LanePrediction(Node):
         width_value = int(np.interp(steering_value, [-1.0,1.0], [0,width]))
         cv2.circle(img, (width_value,0), 5, (0,0,255), 20)
         cv2.putText(img, "{:.2f}".format(steering_value), (width_value,40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 1)
+
+        width_value = int(np.interp(self.steering_out, [-1.0,1.0], [0,width]))
+        cv2.circle(img, (width_value,50), 3, (255,255,0), 5)
+        cv2.putText(img, "{:.2f}".format(self.steering_out), (width_value,90), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255,255,0), 1)
+
         for poly in region_of_interest:
             poly = poly.reshape((-1, 1, 2))
             cv2.polylines(img, [poly], True, (255,0,0), 1)
         return img
 
     def e2e_steering(self, img:Image):
-        #-------------------------- Variables for local testing --------------------------
-        input_image = cv2.imread("/home/vboxuser/Desktop/0.jpg")
-        gray_scale_copy = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
-        #---------------------------------------------------------------------------------
-
         print("got an image")
 
-        #input_image = self.bridge.imgmsg_to_cv2(img)
-        #gray_scale_copy = input_image
-        cv2.imshow("original", gray_scale_copy)
+        input_image = self.bridge.imgmsg_to_cv2(img)
+        gray_scale_copy = input_image
+        # cv2.imshow("original", gray_scale_copy)
 
         # Noise reduction
         blured_img = cv2.GaussianBlur(gray_scale_copy, (3,3), 0)
-        cv2.imshow("blured", blured_img)
+        # cv2.imshow("blured", blured_img)
 
         # Convert gray scale image to binary image
-        threshold, binary_img = cv2.threshold(blured_img, 235, 255, cv2.THRESH_BINARY)
-        cv2.imshow("binary", binary_img)
+        threshold, binary_img = cv2.threshold(blured_img, 254, 255, cv2.THRESH_BINARY)
+        # cv2.imshow("binary", binary_img)
 
         # Run edge detection
         edge_detection_img = cv2.Canny(binary_img, 200, 255)
 
         # Define region of interrest        
         region_of_interest = np.array([
-            [[(0,155),(0,205),(319,205),(319,155)]],
-            [[(0,105),(0,155),(319,155),(319,105)]],
-            [[(0,65),(0,105),(319,105),(319,65)]]
+            [[(0,170),(0,220),(319,220),(319,170)]],
+            [[(0,120),(0,170),(319,170),(319,120)]],
+            [[(20,80),(20,120),(299,120),(299,80)]]
         ])
     
         steering_angles = []
-        steering_wights = [40,45,15]
+        steering_wights = [60,30,10]
         
         visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
 
@@ -101,7 +105,7 @@ class LanePrediction(Node):
             image_region_interrest = cv2.fillPoly(image_mask, cycle, 255)
             masked_of_image = cv2.bitwise_and(edge_detection_img, image_region_interrest)
             window_name = "masked_image" + str(i)
-            cv2.imshow(window_name, masked_of_image)
+            # cv2.imshow(window_name, masked_of_image)
 
             # extrackt streight lines
             lane_lines = cv2.HoughLinesP(masked_of_image, rho=2, theta=np.pi/180, threshold=13, lines=np.array([]), minLineLength=18, maxLineGap=8)
@@ -114,13 +118,15 @@ class LanePrediction(Node):
                     x1, y1, x2, y2 = line.reshape(4)
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
-                    if(m < 0):
+                    height, width = gray_scale_copy.shape
+                    x = (width - b) / m
+                    if(x < height/2):
                         left_lane_line.append((m,b))
                     else:
                         right_lane_line.append((m,b))
             
             if len(left_lane_line) > 0 and len(right_lane_line) == 0:
-                print("left_lane")
+                print("left_lane", end='')
                 avr_lane_line_paramters = np.average(left_lane_line, axis=0)
                 #-----------------------------------------------------------------------------------------------
                 #line_l = self.calc_coordinates(avr_lane_line_paramters)
@@ -131,7 +137,7 @@ class LanePrediction(Node):
                 steering_angles.append(steering_angle)
                 print(lane_direction, "-> steeringangle " + str(i))
             elif len(right_lane_line) > 0 and len(right_lane_line) == 0:
-                print("right lane")
+                print("right lane", end='')
                 avr_lane_line_paramters = np.average(right_lane_line, axis=0)
                 #-----------------------------------------------------------------------------------------------
                 #line_r = self.calc_coordinates(avr_lane_line_paramters)
@@ -142,7 +148,7 @@ class LanePrediction(Node):
                 steering_angles.append(steering_angle)
                 print(lane_direction, "-> steeringangle " + str(i))
             elif len(left_lane_line) > 0 and len(right_lane_line) > 0:
-                print("both lanes")
+                print("both lanes", end='')
                 left_lane_line_avr = np.average(left_lane_line, axis = 0)
                 #-----------------------------------------------------------------------------------------------
                 #line_l = self.calc_coordinates(left_lane_line_avr)
@@ -156,7 +162,7 @@ class LanePrediction(Node):
                 lane_direction = self.calc_lane_direction(left_lane_line_avr, right_lane_line_avr)
                 steering_angle = self.calc_steeringangle(lane_direction)
                 steering_angles.append(steering_angle)
-                print(lane_direction, "-> steeringangle " + str(i))
+                print(f"{lane_direction} -> steeringangle {i}")
             else:
                 steering_angles.append(-100)
 
@@ -183,7 +189,7 @@ class LanePrediction(Node):
         cv2.imshow("visualisation", visualisation_img)
 
         self.steering_publisher.publish(msg)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
 
 
 def main(args=None):

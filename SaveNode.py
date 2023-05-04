@@ -128,7 +128,9 @@ class SaveNode(Node):
         if self.enable_load:
             if not Path(self.load_path + f"/bild_{self.load_file_count}.jpg").exists():
                 self.load_file_count = 1
-            img = cv2.imread(self.load_path+f"/bild_{self.load_file_count}.jpg", cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(self.load_path+f"/bild_{self.load_file_count}.jpg")
+            if img.shape != 2:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             msg = self.bridge.cv2_to_imgmsg(img, encoding="mono8")
             self.load_file_count += 1
             self.pub["IMG"].publish(msg)
