@@ -121,6 +121,7 @@ class LanePrediction(Node):
             if lane_lines is not None:
                 visualisation_img = self.line_visualisation(visualisation_img, lane_lines)
                 for line in lane_lines:
+                    x1, y1, x2, y2 = 0 
                     x1, y1, x2, y2 = line.reshape(4)
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
@@ -154,7 +155,7 @@ class LanePrediction(Node):
                 roi_angle = atan(m_i)
                 roi_angle = (roi_angle * 180)/ np.pi
                 roi_angle = 90-roi_angle
-                steering_angles.append(self.calc_single_steeringangle(roi_angle))
+                steering_angles.append(self.calc_single_steeringangle(-roi_angle))
             elif len(left_lane_line) > 0 and len(right_lane_line) > 0:
                 print("both lanes", end='')
                 left_lane_line_avr = np.average(left_lane_line, axis = 0)
