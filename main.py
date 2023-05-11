@@ -15,7 +15,7 @@ class LanePrediction(Node):
     def __init__(self):
             super().__init__("lane_prediction")
             self.bridge = CvBridge()
-            self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
+            self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
             self.create_subscription(Image, "/perception/image_gray8", self.e2e_steering, 10)
             self.create_subscription(Float32, "/steering/steering", self.set_steering_out, 10)
             self.steering_out = 0.0
@@ -94,13 +94,13 @@ class LanePrediction(Node):
 
         # Define region of interrest        
         region_of_interest = np.array([
-            [[(0,170),(0,220),(319,220),(319,170)]],
+            [[(0,170),(0,240),(319,240),(319,170)]],
             [[(0,120),(0,170),(319,170),(319,120)]],
             [[(20,80),(20,120),(299,120),(299,80)]]
         ])
     
         steering_angles = []
-        steering_wights = [60,30,10]
+        steering_wights = [90,5,5]
         
         visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
 
@@ -121,7 +121,7 @@ class LanePrediction(Node):
             if lane_lines is not None:
                 visualisation_img = self.line_visualisation(visualisation_img, lane_lines)
                 for line in lane_lines:
-                    x1, y1, x2, y2 = 0 
+                    x1, y1, x2, y2 = [0,0,0,0]
                     x1, y1, x2, y2 = line.reshape(4)
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
