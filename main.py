@@ -8,6 +8,7 @@ from sensor_msgs.msg import Image as Image
 from cv_bridge import CvBridge
 import numpy as np
 from datetime import date
+from math import atan
 
 class LanePrediction(Node):
     
@@ -46,6 +47,11 @@ class LanePrediction(Node):
         x1 = int((y1-b)/m)
         x2 = int((y2-b)/m)
         return np.array([x1, y1, x2, y2])
+    
+    def calc_single_steeringangle(self, angle):
+        steering_input = 0
+        steering_input = angle/100
+        return steering_input
 
     def line_visualisation(self, img, lane_lines):
         for point_array in lane_lines:
@@ -104,7 +110,7 @@ class LanePrediction(Node):
             image_mask = np.zeros_like(gray_scale_copy)
             image_region_interrest = cv2.fillPoly(image_mask, cycle, 255)
             masked_of_image = cv2.bitwise_and(edge_detection_img, image_region_interrest)
-            window_name = "masked_image" + str(i)
+            #window_name = "masked_image" + str(i)
             # cv2.imshow(window_name, masked_of_image)
 
             # extrackt streight lines
@@ -119,11 +125,11 @@ class LanePrediction(Node):
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
                     height, width = gray_scale_copy.shape
-                    x = (width - b) / m
-                    if(x < height/2):
-                        left_lane_line.append((m,b))
-                    else:
+                    y0 = (220-b)/m
+                    if(y0 > 160):
                         right_lane_line.append((m,b))
+                    else:
+                        left_lane_line.append((m,b))
             
             if len(left_lane_line) > 0 and len(right_lane_line) == 0:
                 print("left_lane", end='')
@@ -132,10 +138,11 @@ class LanePrediction(Node):
                 #line_l = self.calc_coordinates(avr_lane_line_paramters)
                 #cv2.line(gray_scale_copy, (line_l[0], line_l[1]), (line_l[2], line_l[3]), (0,255,2), 3)
                 #-----------------------------------------------------------------------------------------------
-                lane_direction = self.calc_single_lane_direction(avr_lane_line_paramters)
-                steering_angle = self.calc_steeringangle(lane_direction)
-                steering_angles.append(steering_angle)
-                print(lane_direction, "-> steeringangle " + str(i))
+                m_i, b_i = avr_lane_line_paramters
+                roi_angle = atan(m_i)
+                roi_angle = (roi_angle * 180)/ np.pi
+                roi_angle = 90+roi_angle
+                steering_angles.append(self.calc_single_steeringangle(roi_angle))
             elif len(right_lane_line) > 0 and len(right_lane_line) == 0:
                 print("right lane", end='')
                 avr_lane_line_paramters = np.average(right_lane_line, axis=0)
@@ -143,10 +150,11 @@ class LanePrediction(Node):
                 #line_r = self.calc_coordinates(avr_lane_line_paramters)
                 #cv2.line(gray_scale_copy, (line_l[0], line_l[1]), (line_l[2], line_l[3]), (0,255,2), 3)
                 #-----------------------------------------------------------------------------------------------
-                lane_direction = self.calc_single_lane_direction(avr_lane_line_paramters)
-                steering_angle = self.calc_steeringangle(lane_direction)
-                steering_angles.append(steering_angle)
-                print(lane_direction, "-> steeringangle " + str(i))
+                m_i, b_i = avr_lane_line_paramters
+                roi_angle = atan(m_i)
+                roi_angle = (roi_angle * 180)/ np.pi
+                roi_angle = 90-roi_angle
+                steering_angles.append(self.calc_single_steeringangle(roi_angle))
             elif len(left_lane_line) > 0 and len(right_lane_line) > 0:
                 print("both lanes", end='')
                 left_lane_line_avr = np.average(left_lane_line, axis = 0)
