@@ -51,7 +51,7 @@ class LanePrediction(Node):
     def calc_single_steeringangle(self, angle):
         steering_input = 0
         steering_input = angle/100
-        return max(min(1.0, steering_input) -1.0)
+        return steering_input
 
     def line_visualisation(self, img, lane_lines):
         for point_array in lane_lines:
