@@ -50,7 +50,7 @@ class LanePrediction(Node):
     
     def calc_single_steeringangle(self, angle):
         steering_input = 0
-        steering_input = angle/100
+        steering_input = angle/90
         return steering_input
 
     def line_visualisation(self, img, lane_lines):
@@ -100,7 +100,7 @@ class LanePrediction(Node):
         ])
     
         steering_angles = []
-        steering_wights = [90,5,5]
+        steering_wights = [70,25,5]
         
         visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
 
@@ -142,7 +142,10 @@ class LanePrediction(Node):
                 m_i, b_i = avr_lane_line_paramters
                 roi_angle = atan(m_i)
                 roi_angle = (roi_angle * 180)/ np.pi
-                roi_angle = 90+roi_angle
+                if roi_angle > 0:
+                    roi_angle = -90 + roi_angle
+                else:
+                    roi_angle = 90 + roi_angle
                 steering_angles.append(self.calc_single_steeringangle(roi_angle))
             elif len(right_lane_line) > 0 and len(right_lane_line) == 0:
                 print("right lane", end='')
@@ -154,8 +157,11 @@ class LanePrediction(Node):
                 m_i, b_i = avr_lane_line_paramters
                 roi_angle = atan(m_i)
                 roi_angle = (roi_angle * 180)/ np.pi
-                roi_angle = 90-roi_angle
-                steering_angles.append(self.calc_single_steeringangle(-roi_angle))
+                if roi_angle > 0:
+                    roi_angle = -90 + roi_angle
+                else:
+                    roi_angle = 90 + roi_angle
+                steering_angles.append(self.calc_single_steeringangle(roi_angle))
             elif len(left_lane_line) > 0 and len(right_lane_line) > 0:
                 print("both lanes", end='')
                 left_lane_line_avr = np.average(left_lane_line, axis = 0)
