@@ -162,6 +162,9 @@ class KeyController(Node):
         cv2.imshow("Bild-Autofahren", image)
         key = cv2.pollKey()
 
+        self.speed_last = self.speed
+        self.steering_last = self.steering
+
         if (key != -1):
             match (chr(key)):
                 case 'w'|'W': 
@@ -184,8 +187,6 @@ class KeyController(Node):
                     self.stop()
                     self.log("en" if self.emergency_disable else "dis" + "abled emergency stop")
 
-            self.speed_last = self.speed
-            self.steering_last = self.steering
             self.speed = self.speedMax if self.speed > self.speedMax else self.speed if self.speed > self.speedMin else self.speedMin
             self.steering = self.steerMax if self.steering > self.steerMax else self.steering if self.steering > self.steerMin else self.steerMin
 
