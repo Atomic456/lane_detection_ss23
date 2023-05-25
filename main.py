@@ -103,7 +103,7 @@ class LanePrediction(Node):
         ])
     
         steering_angles = []
-        steering_wights = [70,25,5]
+        steering_wights = [50,40,10]
         
         visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
 
@@ -129,8 +129,8 @@ class LanePrediction(Node):
                     line_parameters = np.polyfit([x1,x2], [y1,y2], 1)
                     m, b = line_parameters
                     height, width = gray_scale_copy.shape
-                    y0 = (220-b)/m
-                    if(y0 > 160):
+                    x = (240-b)/m
+                    if(x > 160):
                         right_lane_line.append((m,b))
                     else:
                         left_lane_line.append((m,b))
@@ -150,7 +150,7 @@ class LanePrediction(Node):
                 else:
                     roi_angle = 90 + roi_angle
                 steering_angles.append(self.calc_single_steeringangle(roi_angle))
-            elif len(right_lane_line) > 0 and len(right_lane_line) == 0:
+            elif len(right_lane_line) > 0 and len(left_lane_line) == 0:
                 print("right lane", end='')
                 avr_lane_line_paramters = np.average(right_lane_line, axis=0)
                 #-----------------------------------------------------------------------------------------------
