@@ -60,6 +60,8 @@ class KeyController(Node):
         }
         self.load_config()
         self.stop()
+        self.speed_last = 0
+        self.steering_last = 0
 
     def enable_logging(self, msg:boolMsg):
         self.enable_debug = msg.data
@@ -182,12 +184,16 @@ class KeyController(Node):
                     self.stop()
                     self.log("en" if self.emergency_disable else "dis" + "abled emergency stop")
 
+            self.speed_last = self.speed
+            self.steering_last = self.steering
             self.speed = self.speedMax if self.speed > self.speedMax else self.speed if self.speed > self.speedMin else self.speedMin
             self.steering = self.steerMax if self.steering > self.steerMax else self.steering if self.steering > self.steerMin else self.steerMin
 
         if self.enable_key_control and not self.emergency_disable:
-            self.send_speed()
-            #self.send_steer()
+            if self.speed != self.speed_last:
+                self.send_speed()
+            if self.steering != self.steering_last:
+                self.send_steer()
 
 def main(args=None):
     ros.init()
