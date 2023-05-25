@@ -190,17 +190,13 @@ class LanePrediction(Node):
 
         print(steering_angles)
         steering_input = 0
-        div = 1
+
         for i,angle in enumerate(steering_angles):
-            angle = steering_angles[i]
             if angle != -100:
                 steering_input += angle * steering_wights[i]
-                div += steering_wights[i]
-    
+
         msg = Float32()
-        if div != 1:
-            div -= 1
-        msg.data = steering_input / div
+        msg.data = steering_input / 80
         print(msg.data)
 
         visualisation_img = self.end_visualisation(visualisation_img, msg.data, region_of_interest)

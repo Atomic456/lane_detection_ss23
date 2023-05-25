@@ -23,8 +23,8 @@ class KeyController(Node):
 
     TOPIC = {
         "IMG": "/perception/image_gray8",
-        "SPEED": "/pid/speed",
-        "STEER": "/pid/steering",
+        "SPEED": "/speed/speed",
+        "STEER": "/steering/steering",
         "SPEED_MAX": "/config/nodes/key_controller/speed_max",
         "SPEED_MIN": "/config/nodes/key_controller/speed_min",
         "SPEED_INC": "/config/nodes/key_controller/speed_inc",
@@ -122,12 +122,12 @@ class KeyController(Node):
             self.emergency_disable = "disable" in json_data and json_data["disable"]
             self.steerMax = json_data["steerMax"] if "steerMax" in json_data else 0.8
             self.steerMin = json_data["steerMin"] if "steerMin" in json_data else -0.8
-            self.steerInc = json_data["steerInc"] if "steerInc" in json_data else 0.2
-            self.steerDec = json_data["steerDec"] if "steerDec" in json_data else 0.2
+            self.steerInc = json_data["steerInc"] if "steerInc" in json_data else 0.1
+            self.steerDec = json_data["steerDec"] if "steerDec" in json_data else 0.1
             self.speedMax = json_data["speedMax"] if "speedMax" in json_data else 1.0
             self.speedMin = json_data["speedMin"] if "speedMin" in json_data else -1.0
-            self.speedInc = json_data["speedInc"] if "speedInc" in json_data else 0.25
-            self.speedDec = json_data["speedDec"] if "speedDec" in json_data else 0.25
+            self.speedInc = json_data["speedInc"] if "speedInc" in json_data else 0.33
+            self.speedDec = json_data["speedDec"] if "speedDec" in json_data else 0.33
 
     def log(self, log_text):
         if self.enable_debug:

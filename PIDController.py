@@ -117,7 +117,7 @@ class PIDNode(Node):
         self.i_steer += dt*adjustment
         self.d_steer = ((adjustment - self.last_adjustment)/dt if dt < 0 else 0)
         self.ts = newTs
-        self.c_steer = adjustment * self.p + self.i * self.i_steer + self.d * self.d_steer
+        self.c_steer += adjustment * self.p + self.i * self.i_steer + self.d * self.d_steer
         self.c_steer = max(-0.8, min(0.8, self.c_steer))
         outMsg = floatMsg()
         outMsg.data = self.c_steer
