@@ -24,9 +24,12 @@ class LanePrediction(Node):
         self.steering_out = msg.data  
     
     def calc_steeringangle(self, lane_oriantation):
-        lane_oriantation2 = 0 if lane_oriantation < 0 else lane_oriantation if lane_oriantation < 319 else 319
-        direction = lane_oriantation2 - 160
-        steering_input = direction / 200
+        if lane_oriantation > 319:
+            lane_oriantation = 319
+        if lane_oriantation < 0:
+            lane_oriantation = 0
+        direction = lane_oriantation - 160
+        steering_input = direction / 160
         return steering_input
 
     def calc_single_lane_direction(self, avr_lane_paramters):
@@ -51,7 +54,7 @@ class LanePrediction(Node):
     def calc_single_steeringangle(self, angle):
         steering_input = 0
         steering_input = angle/90
-        return steering_input
+        return max(min(1.0, steering_input), -1.0)
 
     def line_visualisation(self, img, lane_lines):
         for point_array in lane_lines:
