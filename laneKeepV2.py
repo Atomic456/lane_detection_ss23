@@ -16,6 +16,23 @@ class LaneKeep(Node):
         self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
         self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
 
+    def line_visualisation(self, img, lane_lines):
+        for point_array in lane_lines:
+            x1,y1,x2,y2 = point_array[0]
+            cv2.line(img, (x1,y1), (x2,y2), (0,255,0), 2)
+        return img
+
+    def end_visualisation(self, img, steering_value, region_of_interest):
+        height, width, _ = img.shape
+        width_value = int(np.interp(steering_value, [-1.0,1.0], [0,width]))
+        cv2.circle(img, (width_value,0), 5, (0,0,255), 20)
+        cv2.putText(img, "{:.2f}".format(steering_value), (width_value,40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 1)
+
+        for poly in region_of_interest:
+            poly = poly.reshape((-1, 1, 2))
+            cv2.polylines(img, [poly], True, (255,0,0), 1)
+        return img
+
     def publishSteeringValue(self, steering_value):
         # cap seering to a max value of 0.8/-0.8
         steering_value = np.clip(steering_value, -0.8, 0.8)
@@ -132,22 +149,22 @@ class LaneKeep(Node):
         self.height, self.width = gray_scale_img.shape
         
         # blur image to reduce noise
-        blured_img = cv2.GaussianBlur(gray_scale_img, (3,3), 0)
+        blurred_img = cv2.GaussianBlur(gray_scale_img, (3,3), 0)
 
         # image center
         self.img_center = round(self.width / 2)
 
         """Image processing before detecting lanes"""
         # define region of interest
-        region_of_interest = np.array([[[(10,15),(0,240),(320,240),(310,15)]]])
-
+        region_of_interest = np.array([[[(0,15),(0,240),(320,240),(320,15)]]])
+        
+        # detecting edges in the image
+        edges = cv2.Canny(blurred_img, 252, 255)
+        
         # mask off the image
         image_mask = np.zeros_like(gray_scale_img)
         image_mask = cv2.fillPoly(image_mask, region_of_interest, 255)
-        masked_img = cv2.bitwise_and(gray_scale_img, image_mask)
-        
-        # detecting edges in the image
-        edges = cv2.Canny(masked_img, 252, 255)
+        masked_img = cv2.bitwise_and(edges, image_mask)
 
         """Detect lines in pre processed image"""
         # detecting lines in the image
@@ -161,6 +178,8 @@ class LaneKeep(Node):
         
         right_line_m, right_line_b, right_line_found = self.linearFit(right_lines)
         left_line_m, left_line_b, left_line_found = self.linearFit(left_lines)
+
+        visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
         """Calculate steering values"""
         if right_line_found and left_line_found:
@@ -181,6 +200,13 @@ class LaneKeep(Node):
                 steering_value = car_position/self.img_center
                 # send steering value
                 self.publishSteeringValue(steering_value)
+                # visualisation
+                visualisation_img = self.line_visualisation(visualisation_img, lines)
+                visualisation_img = self.end_visualisation(visualisation_img, steering_value, region_of_interest)
+        
+        cv2.imshow("Visualisation", visualisation_img)
+        cv2.imshow("Masked Image", masked_img)
+        cv2.waitKey(1)
 
 def main(args=None):
     ros.init()
