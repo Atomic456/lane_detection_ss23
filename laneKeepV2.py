@@ -72,7 +72,7 @@ class LaneKeep(Node):
         border_offset = 0.25
 
         for i in range(len(line_slopes)):
-            x1, y1, x2, y2 = detected_lines[i]
+            x1, y1, x2, y2 = detected_lines[i].reshape(4)
 
             # Right lane
             if (line_slopes[i] < min_slope_thres) and (min(x1, x2) > (1 - border_offset) * image_center) and (line_slopes[i] < max_slope_thres):
