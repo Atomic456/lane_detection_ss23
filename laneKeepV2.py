@@ -13,17 +13,12 @@ class LaneKeep(Node):
     def __init__(self):
         super().__init__("lane_keep")
         self.bridge = CvBridge()
-        self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
+        self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
         self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
-        self.create_subscription(Float32, "/steering/steering", self.set_steering_out, 10)
-        self.steering_out = 0.0
-
-    def set_steering_out(self, msg:Float32):
-        self.steering_out = msg.data
 
     def publishSteeringValue(self, steering_value):
         # cap seering to a max value of 0.8/-0.8
-        steering_value = 0.8 * steering_value
+        steering_value = np.clip(steering_value, -0.8, 0.8)
 
         # create steering message
         msg = Float32()
@@ -183,9 +178,9 @@ class LaneKeep(Node):
             print(f"lane_center: {lane_center} lane_width: {lane_width} car_position: {car_position}")
             # calculate steering vlaue
             if lane_width != 0:
-                steering_value = car_position/(self.img_center*0.5)
+                steering_value = car_position/self.img_center
                 # send steering value
-                self.publishSteeringValue(np.clip(steering_value, -0.8, 0.8))
+                self.publishSteeringValue(steering_value)
 
 def main(args=None):
     ros.init()
