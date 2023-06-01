@@ -67,8 +67,8 @@ class LaneKeep(Node):
         right_lines = []
         left_lines = []
 
-        min_slope_thres = 0.2
-        max_slope_thres = 15
+        min_slope_thres = 0.1
+        max_slope_thres = 18
         border_offset = 0.25
 
         for i in range(len(line_slopes)):
