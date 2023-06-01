@@ -159,6 +159,7 @@ class KeyController(Node):
 
     def show(self, msg:imgMsg):
         image = self.bridge.imgmsg_to_cv2(msg)
+        image = cv2.rotate(image, cv2.ROTATE_180)
         cv2.imshow("Bild-Autofahren", image)
         key = cv2.pollKey()
 
