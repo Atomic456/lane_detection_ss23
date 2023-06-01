@@ -97,17 +97,13 @@ class LanePrediction(Node):
 
         # Define region of interrest        
         region_of_interest = np.array([
-            [[(0,170),(0,240),(319,240),(319,170)]],
-            [[(0,120),(0,170),(319,170),(319,120)]],
-            [[(20,80),(20,120),(299,120),(299,80)]]
+            [[(0,0),(0,240),(319,240),(319,0)]]
         ])
-    
-        steering_angles = []
-        steering_wights = [50,40,10]
-        
+
         visualisation_img = cv2.cvtColor(gray_scale_copy, cv2.COLOR_GRAY2BGR)
 
         i = 0
+        steering_angles = []
         for cycle in region_of_interest:
             # Apply region of interest to mask of the image
             image_mask = np.zeros_like(gray_scale_copy)
@@ -191,9 +187,9 @@ class LanePrediction(Node):
         print(steering_angles)
         steering_input = 0
 
-        for i,angle in enumerate(steering_angles):
-            if angle != -100:
-                steering_input += angle * steering_wights[i]
+        angle = steering_angles[0]
+        if angle != -100:
+             steering_input = angle
 
         msg = Float32()
         msg.data = steering_input / 80
