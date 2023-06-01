@@ -46,7 +46,7 @@ class PIDNode(Node):
         self.last_adjustment = 0.0
     
     def timestamp(self):
-        return int(round(time.time())*1000)
+        return int(round(time.time())/1000)
 
     def save_config(self):
         json_data = {

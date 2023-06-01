@@ -175,7 +175,7 @@ class LaneKeep(Node):
             lane_center = (right_x2 + left_x2) / 2
             lane_width = abs(right_x2 - left_x2)
             car_position = -self.img_center + lane_center
-            print(f"lane_center: {lane_center} lane_width: {lane_width} car_position: {car_position}")
+            #print(f"lane_center: {lane_center} lane_width: {lane_width} car_position: {car_position}")
             # calculate steering vlaue
             if lane_width != 0:
                 steering_value = car_position/self.img_center
