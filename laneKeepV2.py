@@ -83,7 +83,7 @@ class LaneKeep(Node):
         
         return left_lines, right_lines
     
-    def linearFit(lane_lines):
+    def linearFit(self, lane_lines):
         slopes = []
         x_intersects = []
 
