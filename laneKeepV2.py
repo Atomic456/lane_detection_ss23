@@ -118,7 +118,7 @@ class LaneKeep(Node):
         gray_scale_img  = self.bridge.imgmsg_to_cv2(img)
 
         # safe image size
-        self.height, self.width, self.channels = gray_scale_img.shape
+        self.height, self.width = gray_scale_img.shape
         
         # blur image to reduce noise
         blured_img = cv2.GaussianBlur(gray_scale_img, (3,3), 0)
