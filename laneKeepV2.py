@@ -34,7 +34,7 @@ class LaneKeep(Node):
 
     
     def houghLines(self, masked_Image):
-        min_line_length = self.hight / 5
+        min_line_length = self.height / 5
         max_line_gap = self.width / 6
         rho = 1
         theta = np.py / 180
