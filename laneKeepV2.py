@@ -34,6 +34,7 @@ class LaneKeep(Node):
 
     
     def houghLines(self, masked_Image):
+        """
         min_line_length = self.height / 7
         max_line_gap = self.width / 6
         rho = 1
@@ -41,6 +42,15 @@ class LaneKeep(Node):
         hough_threshold = 12
         lines = cv2.HoughLinesP(masked_Image, rho, theta, hough_threshold, np.array([]), minLineLength = min_line_length, maxLineGap = max_line_gap)
         return lines
+        """
+        min_line_length = 17
+        max_line_gap = 8
+        rho = 2
+        theta = np.pi / 180
+        hough_threshold = 13
+        lines = cv2.HoughLinesP(masked_Image, rho, theta, hough_threshold, np.array([]), minLineLength = min_line_length, maxLineGap = max_line_gap)
+        return lines
+        
 
     def calculateLineSlope(self, lane_lines):
         slopes = []
