@@ -164,7 +164,7 @@ class LaneKeep(Node):
             car_position = -self.img_center + lane_center
 
             # calculate steering vlaue
-            steering_value = (abs(car_position) / lane_width) * (car_position / abs(car_position))
+            steering_value = (abs(car_position) / lane_width) * np.sing(car_position)
 
             # send steering value
             self.publishSteeringValue(steering_value)
