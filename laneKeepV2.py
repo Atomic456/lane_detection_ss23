@@ -133,7 +133,7 @@ class LaneKeep(Node):
         # mask off the image
         image_mask = np.zeros_like(gray_scale_img)
         image_mask = cv2.fillPoly(image_mask, region_of_interest, 255)
-        masked_img = cv2.bitwise_and(edges, image_mask)
+        masked_img = cv2.bitwise_and(gray_scale_img, image_mask)
         
         # detecting edges in the image
         edges = cv2.Canny(masked_img, 252, 255)
