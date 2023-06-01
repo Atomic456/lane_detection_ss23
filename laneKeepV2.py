@@ -183,9 +183,9 @@ class LaneKeep(Node):
             print(f"lane_center: {lane_center} lane_width: {lane_width} car_position: {car_position}")
             # calculate steering vlaue
             if lane_width != 0:
-                steering_value = car_position/(self.img_center*1.25)
+                steering_value = car_position/(self.img_center*0.5)
                 # send steering value
-                self.publishSteeringValue(steering_value)
+                self.publishSteeringValue(np.clip(steering_value, -0.8, 0.8))
 
 def main(args=None):
     ros.init()
