@@ -116,7 +116,7 @@ class LaneKeep(Node):
         """read Image and convert for further processing"""
         # convert image to cv2
         gray_scale_img  = self.bridge.imgmsg_to_cv2(img)
-
+        gray_scale_img = cv2.rotate(gray_scale_img, cv2.ROTATE_180)
         # safe image size
         self.height, self.width = gray_scale_img.shape
         
