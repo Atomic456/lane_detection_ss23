@@ -128,7 +128,7 @@ class LaneKeep(Node):
 
         """Image processing before detecting lanes"""
         # define region of interest
-        region_of_interest = [(10,15),(0,240),(320,240),(310,15)]
+        region_of_interest = np.array([[[(10,15),(0,240),(320,240),(310,15)]]])
 
         # mask off the image
         image_mask = np.zeros_like(gray_scale_img)
