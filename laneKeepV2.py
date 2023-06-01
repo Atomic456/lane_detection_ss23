@@ -4,21 +4,42 @@ import numpy as np
 
 from rclpy.node import Node
 from cv_bridge import CvBridge
+from std_msgs.msg import Float32
 from sensor_msgs.msg import Image as Image
+
 
 class LaneKeep(Node):
 
     def __init__(self):
         super().__init__("lane_keep")
         self.bridge = CvBridge()
+        self.steering_publisher = self.create_publisher(Float32, "/steering/steering", 10)
+        self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
+        self.create_subscription(Float32, "/steering/steering", self.set_steering_out, 10)
+        self.steering_out = 0.0
+
+    def set_steering_out(self, msg:Float32):
+        self.steering_out = msg.data
+
+    def publishSteeringValue(self, steering_value):
+        # cap seering to a max value of 0.8/-0.8
+        steering_value = 0.8 * steering_value
+
+        # create steering message
+        msg = Float32()
+        msg.data = steering_value
+        
+        # publish message to car
+        self.steering_publisher.publish(msg)
+
     
-    def houghLines(self, maskedImage):
+    def houghLines(self, masked_Image):
         min_line_length = self.hight / 5
         max_line_gap = self.width / 6
         rho = 1
         theta = np.py / 180
         hough_threshold = 13
-        lines = cv2.HoughLinesP(maskedImage, rho, theta, hough_threshold, np.array([]), minLineLength = min_line_length, maxLineGap = max_line_gap)
+        lines = cv2.HoughLinesP(masked_Image, rho, theta, hough_threshold, np.array([]), minLineLength = min_line_length, maxLineGap = max_line_gap)
         return lines
 
     def calculateLineSlope(self, lane_lines):
@@ -131,19 +152,22 @@ class LaneKeep(Node):
         left_line_m, left_line_b, left_line_found = self.linearFit(left_lines)
 
         """Calculate steering values"""
-        if right_line_found:
+        if right_line_found and left_line_found:
             right_y2 = self.height - 1
             right_x2 = int((right_y2 - right_line_b) / right_line_m)
-
-        if left_line_found:
             left_y2 = self.height - 1 
             left_x2 = int((left_y2 - left_line_b) / left_line_m)
         
-        lane_center = (right_x2 + left_x2) / 2
-        lane_width = abs(right_x2 - left_x2)
-        car_position = -self.img_center + lane_center
+            # calculate relevant positione of the lane and the car
+            lane_center = (right_x2 + left_x2) / 2
+            lane_width = abs(right_x2 - left_x2)
+            car_position = -self.img_center + lane_center
 
-        steering_value = (abs(car_position) / lane_width) * (car_position / abs(car_position))
+            # calculate steering vlaue
+            steering_value = (abs(car_position) / lane_width) * (car_position / abs(car_position))
+
+            # send steering value
+            self.publishSteeringValue(steering_value)
 
 def main(args=None):
     ros.init()
