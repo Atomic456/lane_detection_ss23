@@ -67,8 +67,8 @@ class LaneKeep(Node):
         right_lines = []
         left_lines = []
 
-        min_slope_thres = 0.3
-        max_slope_thres = 12
+        min_slope_thres = 0.2
+        max_slope_thres = 15
         border_offset = 0.25
 
         for i in range(len(line_slopes)):
@@ -97,10 +97,16 @@ class LaneKeep(Node):
                 x_intersects.append(x_intersect)
 
             # avrage slope of all lines
-            m = sum(slopes) / len(slopes)
+            if len(slopes) != 0:
+                m = sum(slopes) / len(slopes)
+            else:
+                m = 0
 
             # avrage x intersect of all lines
-            avg_x_intersect = sum(x_intersects) / len(x_intersects)
+            if len(x_intersects) != 0:
+                avg_x_intersect = sum(x_intersects) / len(x_intersects)
+            else:
+                avg_x_intersect = 0
 
             b = -m * avg_x_intersect
 
@@ -154,9 +160,11 @@ class LaneKeep(Node):
         """Calculate steering values"""
         if right_line_found and left_line_found:
             right_y2 = self.height - 1
-            right_x2 = int((right_y2 - right_line_b) / right_line_m)
-            left_y2 = self.height - 1 
-            left_x2 = int((left_y2 - left_line_b) / left_line_m)
+            if right_line_m != 0:
+                right_x2 = int((right_y2 - right_line_b) / right_line_m)
+            left_y2 = self.height - 1
+            if left_line_m != 0:
+                left_x2 = int((left_y2 - left_line_b) / left_line_m)
         
             # calculate relevant positione of the lane and the car
             lane_center = (right_x2 + left_x2) / 2
@@ -164,7 +172,8 @@ class LaneKeep(Node):
             car_position = -self.img_center + lane_center
 
             # calculate steering vlaue
-            steering_value = (abs(car_position) / lane_width) * np.sign(car_position)
+            if lane_width != 0:
+                steering_value = (abs(car_position) / lane_width) * np.sign(car_position)
 
             # send steering value
             self.publishSteeringValue(steering_value)
