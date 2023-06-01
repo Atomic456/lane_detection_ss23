@@ -89,7 +89,7 @@ class LaneKeep(Node):
 
         if len(lane_lines) > 0:
             for line in lane_lines:
-                x1, y1, x2, y2 = line
+                x1, y1, x2, y2 = line.reshape(4)
                 line_m = float(y2 - y1) / float(x2 - x1)
                 line_b = y1 - line_m * x1
                 x_intersect = -line_b / line_m
