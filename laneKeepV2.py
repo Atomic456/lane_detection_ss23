@@ -17,9 +17,10 @@ class LaneKeep(Node):
         self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
 
     def line_visualisation(self, img, lane_lines):
-        for point_array in lane_lines:
-            x1,y1,x2,y2 = point_array[0]
-            cv2.line(img, (x1,y1), (x2,y2), (0,255,0), 2)
+        if lane_lines is not None:
+            for point_array in lane_lines:
+                x1,y1,x2,y2 = point_array[0]
+                cv2.line(img, (x1,y1), (x2,y2), (0,255,0), 2)
         return img
 
     def end_visualisation(self, img, steering_value, region_of_interest):
@@ -185,10 +186,10 @@ class LaneKeep(Node):
         if right_line_found and not left_line_found:
             # right line only
             right_x_top = (50-right_line_b)/right_line_m
-            steering_value = ((right_x_top/(160))+2)*0.4
+            steering_value = ((right_x_top/160)+2)*0.4
         elif left_line_found and not right_line_found:
             left_x_top = (50-left_line_b)/left_line_m
-            steering_value = (left_x_top/(160))*0.4
+            steering_value = (left_x_top/160)*0.4
 
         
 
