@@ -81,7 +81,7 @@ class LanePrediction(Node):
         print("got an image")
 
         input_image = self.bridge.imgmsg_to_cv2(img)
-        gray_scale_copy = input_image
+        gray_scale_copy = cv2.rotate(input_image, cv2.ROTATE_180)
         # cv2.imshow("original", gray_scale_copy)
 
         # Noise reduction

@@ -67,6 +67,8 @@ class LaneKeep(Node):
     def calculateLineSlope(self, lane_lines):
         slopes = []
         res_lines = []
+        if lane_lines is None:
+            return res_lines, slopes
         for line in lane_lines:
             x1, y1, x2, y2 = [0,0,0,0]
             x1, y1, x2, y2 = line.reshape(4)
