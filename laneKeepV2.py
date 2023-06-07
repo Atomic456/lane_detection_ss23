@@ -181,7 +181,7 @@ class LaneKeep(Node):
         right_line_m, right_line_b, right_line_found = self.linearFit(right_lines)
         left_line_m, left_line_b, left_line_found = self.linearFit(left_lines)
 
-	steering_value = -200
+        steering_value = -200
         if right_line_found and not left_line_found:
             # right line only
             right_x_top = (50-right_line_b)/right_line_m
