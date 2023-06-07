@@ -7,6 +7,8 @@ from cv_bridge import CvBridge
 from std_msgs.msg import Float32
 from sensor_msgs.msg import Image as Image
 from math import atan
+from math import sqrt
+
 
 
 class LaneKeep(Node):
@@ -193,7 +195,8 @@ class LaneKeep(Node):
             else:
                 angle = 90 + angle
 
-            steering_value = max(min(1.0, (angle/90)), -1.0) * 0.4
+            unscaled_steering = max(min(1.0, (angle/90)), -1.0) 
+            steering_value = ( unscaled_steering * 1.25) ** 2
 
         elif left_line_found and not right_line_found:
             angle = atan(left_line_m)
@@ -203,7 +206,8 @@ class LaneKeep(Node):
             else:
                 angle = 90 + angle
 
-            steering_value = max(min(1.0, (angle/90)), -1.0) * 0.4
+            unscaled_steering = max(min(1.0, (angle/90)), -1.0)
+            steering_value = ( unscaled_steering * 1.25 ) ** 2
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
