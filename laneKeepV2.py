@@ -211,12 +211,13 @@ class LaneKeep(Node):
             # calculate steering vlaue
             if lane_width != 0:
                 steering_value = car_position/lane_width
-                # send steering value
-                self.publishSteeringValue(steering_value)
-                # visualisation
-                
+               
+        # send steering value
+        self.publishSteeringValue(steering_value)
+        # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
         visualisation_img = self.end_visualisation(visualisation_img, steering_value, region_of_interest)
+
         cv2.imshow("Visualisation", visualisation_img)
         cv2.imshow("Masked Image", masked_img)
         cv2.waitKey(1)
