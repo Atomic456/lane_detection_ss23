@@ -115,15 +115,16 @@ class PIDNode(Node):
         newTs = self.timestamp()
         dt = newTs - self.ts
         self.i_steer += dt*adjustment
-        self.d_steer = ((adjustment - self.last_adjustment)/dt if dt < 0 else 0)
+        self.d_steer = ((adjustment - self.last_adjustment)/dt if dt > 0 else 0)
         self.ts = newTs
         self.c_steer += adjustment * self.p + self.i * self.i_steer + self.d * self.d_steer
-        self.c_steer = max(-0.8, min(0.8, self.c_steer))
+        self.c_steer = np.clip(self.c_steer, -0.8, 0.8)
         outMsg = floatMsg()
         outMsg.data = self.c_steer
         self.pub["STEER_OUT"].publish(outMsg)
         self.log(f"recived {msg.data} steering to {self.c_steer}")
         self.last_adjustment = adjustment
+
 
 def main(args=None):
     ros.init()
