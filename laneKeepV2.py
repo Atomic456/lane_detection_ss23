@@ -185,10 +185,10 @@ class LaneKeep(Node):
         if right_line_found and not left_line_found:
             # right line only
             right_x_top = (50-right_line_b)/right_line_m
-            steering_value = ((right_x_top/(-160))+2)*0.4
+            steering_value = ((right_x_top/(160))+2)*0.4
         elif left_line_found and not right_line_found:
             left_x_top = (50-left_line_b)/left_line_m
-            steering_value = (left_x_top/(-160))*0.4
+            steering_value = (left_x_top/(160))*0.4
 
         
 
