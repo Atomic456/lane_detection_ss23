@@ -6,6 +6,7 @@ from rclpy.node import Node
 from cv_bridge import CvBridge
 from std_msgs.msg import Float32
 from sensor_msgs.msg import Image as Image
+from math import atan
 
 
 class LaneKeep(Node):
@@ -185,13 +186,23 @@ class LaneKeep(Node):
         steering_value = -200
         if right_line_found and not left_line_found:
             # right line only
-            right_x_top = (50-right_line_b)/right_line_m
-            steering_value = ((right_x_top/160)+2)*0.4
-        elif left_line_found and not right_line_found:
-            left_x_top = (50-left_line_b)/left_line_m
-            steering_value = (left_x_top/160)*0.4
+            angle = atan(right_line_m)
+            angle = (angle * 180)/ np.pi
+            if angle > 0:
+                    angle = -90 + angle
+            else:
+                angle = 90 + angle
 
-        
+            steering_value = max(min(1.0, (angle/90)), -1.0)
+        elif left_line_found and not right_line_found:
+            angle = atan(left_line_m)
+            angle = (angle * 180)/ np.pi
+            if angle > 0:
+                    angle = -90 + angle
+            else:
+                angle = 90 + angle
+
+            steering_value = max(min(1.0, (angle/90)), -1.0)
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
