@@ -158,7 +158,7 @@ class LaneKeep(Node):
 
         """Image processing before detecting lanes"""
         # define region of interest
-        region_of_interest = np.array([[[(0,105),(0,240),(320,240),(320,105)]]])
+        region_of_interest = np.array([[[(0,50),(0,240),(320,240),(320,50)]]])
         
         # detecting edges in the image
         edges = cv2.Canny(blurred_img, 252, 255)
