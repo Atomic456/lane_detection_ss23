@@ -196,7 +196,7 @@ class LaneKeep(Node):
                 angle = 90 + angle
 
             unscaled_steering = max(min(1.0, (angle/90)), -1.0) 
-            steering_value = ( unscaled_steering * 1.25) ** 2
+            steering_value = unscaled_steering ** 2
 
         elif left_line_found and not right_line_found:
             angle = atan(left_line_m)
@@ -207,7 +207,7 @@ class LaneKeep(Node):
                 angle = 90 + angle
 
             unscaled_steering = max(min(1.0, (angle/90)), -1.0)
-            steering_value = ( unscaled_steering * 1.25 ) ** 2
+            steering_value = unscaled_steering ** 2
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
