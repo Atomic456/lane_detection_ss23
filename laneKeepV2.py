@@ -170,7 +170,7 @@ class LaneKeep(Node):
 
         """Detect lines in pre processed image"""
         # detecting lines in the image
-        lines = self.houghLines(edges)
+        lines = self.houghLines(masked_img)
 
         # calculate slope of detected lines
         relevant_lines, slopes = self.calculateLineSlope(lines)
