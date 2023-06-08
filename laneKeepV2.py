@@ -22,7 +22,7 @@ class LaneKeep(Node):
         self.create_subscription(Float32, "/speed/speed", self.safe_speed, 10)
         self.lane_width = 320
         self.steering_value = 0
-        self.speed = 0
+        self.speed = 0.0
 
     def safe_speed(self, speed_in: Float32):
         self.speed = speed_in
