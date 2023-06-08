@@ -237,7 +237,6 @@ class LaneKeep(Node):
         
                
         # send steering value
-        print(steering_value)
         self.publishSteeringValue(steering_value)
         # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
