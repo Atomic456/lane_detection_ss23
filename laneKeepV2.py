@@ -228,14 +228,14 @@ class LaneKeep(Node):
             #aprocimate positon of left line
             right_x = left_x2 + self.lane_width
 
-            steering_value = self.localisation(left_x2, right_x)
+            self.steering_value = self.localisation(left_x2, right_x)
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
         
                
         # send steering value
-        self.publishSteeringValue(steering_value)
+        self.publishSteeringValue(self.steering_value)
         # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
         visualisation_img = self.end_visualisation(visualisation_img, steering_value, region_of_interest)
