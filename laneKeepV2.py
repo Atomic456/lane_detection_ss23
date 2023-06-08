@@ -37,7 +37,7 @@ class LaneKeep(Node):
     def end_visualisation(self, img, steering_value, region_of_interest):
         height, width, _ = img.shape
         width_value = int(np.interp(steering_value, [-1.0,1.0], [0,width]))
-	height_value = self.height - int(80*self.speed)
+        height_value = self.height - int(80*self.speed)
         cv2.circle(img, (width_value,height_value), 5, (0,0,255), 20)
         cv2.putText(img, "{:.2f}".format(steering_value), (width_value,40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 1)
 
