@@ -44,6 +44,8 @@ class LaneKeep(Node):
         # create steering message
         msg = Float32()
         msg.data = np.clip(steering_value, -0.8, 0.8)
+        if msg.data < 0.02 and msg.data > -0.02:
+            msg.data = 0 
         
         # publish message to car
         self.steering_publisher.publish(msg)
