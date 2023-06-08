@@ -41,11 +41,9 @@ class LaneKeep(Node):
 
     def publishSteeringValue(self):
         # cap seering to a max value of 0.8/-0.8
-        steering = np.clip(self.steering_value, -0.8, 0.8)
-
         # create steering message
         msg = Float32()
-        msg.data = steering
+        msg.data = np.clip(self.steering_value, -0.8, 0.8)
         
         # publish message to car
         self.steering_publisher.publish(msg)
