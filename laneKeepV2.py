@@ -25,7 +25,7 @@ class LaneKeep(Node):
         self.speed = 0.0
 
     def safe_speed(self, speed_in: Float32):
-        self.speed = speed_in
+        self.speed = speed_in.data
 
     def line_visualisation(self, img, lane_lines):
         if lane_lines is not None:
@@ -203,10 +203,10 @@ class LaneKeep(Node):
         """Calculate steering"""
         #Clculate steering values with both lines
         if right_line_found and left_line_found:
-            right_y = self.height - 40
+            right_y = self.height - int(80*self.speed)
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
-            left_y = self.height - (80*self.speed)
+            left_y = self.height - int(80*self.speed)
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
@@ -215,7 +215,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
             #calculate positon of right line
-            right_y = self.height - (80*self.speed)
+            right_y = self.height - int(80*self.speed)
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
 
@@ -227,7 +227,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
             #calculate positon of right line
-            left_y = self.height - (80*self.speed)
+            left_y = self.height - int(80*self.speed)
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
 
