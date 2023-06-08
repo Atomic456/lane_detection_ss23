@@ -28,9 +28,9 @@ class SignClassification(Node):
         self.last_event = -1
         
         self.current_threshold = 0
-        self.sign_threshold = 2
+        self.sign_threshold = 1.3
 
-        self.max_speed = 0.4
+        self.max_speed = 0.45
         self.current_speed = self.max_speed
 
         # load model
@@ -66,7 +66,7 @@ class SignClassification(Node):
         label = self.labels[label_index]
 
         highest_predict = max(prediction[0])
-        high_conf = " !! HIGH CONF !!" if highest_predict > 0.6 else ""
+        high_conf = " !! HIGH CONF !!" if highest_predict > 0.65 else ""
 
         if (high_conf != "" and label_index != 0):
             print("label: " + label + '\n\r' + "confidence: " + str(highest_predict) + high_conf)
@@ -88,7 +88,7 @@ class SignClassification(Node):
         if label_index == 1: #hardstop
             self.stop_for_seconds(10)
         elif label_index == 2: #speedlimit
-            self.current_speed = 0.25
+            self.current_speed = 0.3
             self.speed_publish(self.current_speed)
         elif label_index == 3: #speedlimitoff
             self.current_speed = self.max_speed

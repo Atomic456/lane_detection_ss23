@@ -22,10 +22,10 @@ class LaneKeep(Node):
         self.create_subscription(Float32, "/speed/speed", self.safe_speed, 10)
         self.lane_width = 320
         self.steering_value = 0
-        self.speed = 0.0
+        self.speed = 180
 
     def safe_speed(self, speed_in: Float32):
-        self.speed = speed_in.data
+        self.speed = self.height - int(120 * speed_in.data)
 
     def line_visualisation(self, img, lane_lines):
         if lane_lines is not None:
@@ -37,7 +37,7 @@ class LaneKeep(Node):
     def end_visualisation(self, img, steering_value, region_of_interest):
         height, width, _ = img.shape
         width_value = int(np.interp(steering_value, [-1.0,1.0], [0,width]))
-        height_value = self.height - int(80*self.speed)
+        height_value = self.speed
         cv2.circle(img, (width_value,height_value), 5, (0,0,255), 20)
         cv2.putText(img, "{:.2f}".format(steering_value), (width_value,40), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0,0,255), 1)
 
@@ -204,10 +204,10 @@ class LaneKeep(Node):
         """Calculate steering"""
         #Clculate steering values with both lines
         if right_line_found and left_line_found:
-            right_y = self.height - int(80*self.speed)
+            right_y = self.speed
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
-            left_y = self.height - int(80*self.speed)
+            left_y = self.speed
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
@@ -216,7 +216,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
             #calculate positon of right line
-            right_y = self.height - int(80*self.speed)
+            right_y = self.speed
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
 
@@ -228,7 +228,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
             #calculate positon of right line
-            left_y = self.height - int(80*self.speed)
+            left_y = self.speed
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
 

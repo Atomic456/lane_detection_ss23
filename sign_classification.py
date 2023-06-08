@@ -28,7 +28,7 @@ data_augmentation = tf.keras.Sequential([
 ])
 
 ds_training = tf.keras.preprocessing.image_dataset_from_directory(
-    'C:\\Users\\tobik\\Desktop\\Autonomes Fahren\\datasets\\training\\',
+    './training',
     labels='inferred',
     label_mode='int',
     class_names=class_names,
@@ -41,10 +41,10 @@ ds_training = tf.keras.preprocessing.image_dataset_from_directory(
     subset='training',
 )
 
-#ds_training = ds_training.map(lambda x, y: (data_augmentation(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE)
+ds_training = ds_training.map(lambda x, y: (data_augmentation(x, training=True), y), num_parallel_calls=tf.data.AUTOTUNE)
 
 ds_validation = tf.keras.preprocessing.image_dataset_from_directory(
-    'C:\\Users\\tobik\\Desktop\\Autonomes Fahren\\datasets\\training\\',
+    './training',
     labels='inferred',
     label_mode='int',
     class_names=class_names,
@@ -57,7 +57,7 @@ ds_validation = tf.keras.preprocessing.image_dataset_from_directory(
     subset='validation',
 )
 
-ds_validation = ds_validation.map(lambda x, y: (data_augmentation(x, training=False), y), num_parallel_calls=tf.data.AUTOTUNE)
+#ds_validation = ds_validation.map(lambda x, y: (data_augmentation(x, training=False), y), num_parallel_calls=tf.data.AUTOTUNE)
 
 model = tf.keras.models.Sequential([
   tf.keras.layers.Resizing(image_size[0], image_size[1]),
@@ -82,10 +82,10 @@ model.compile(optimizer="adam",
               metrics=['accuracy'])
 
 if True:
-  model.fit(ds_training, epochs=20, verbose=2)
-  model.save(r'C:\Users\tobik\Desktop\Autonomes Fahren\saved_model')
+  model.fit(ds_training, epochs=50, verbose=2)
+  model.save('saved_model2')
 else:
-  model = tf.keras.models.load_model(r'C:\Users\tobik\Desktop\Autonomes Fahren\saved_model')
+  model = tf.keras.models.load_model('saved_model2')
 
 model.summary()
 
