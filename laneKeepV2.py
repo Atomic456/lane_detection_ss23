@@ -50,8 +50,6 @@ class LaneKeep(Node):
         # create steering message
         msg = Float32()
         msg.data = np.clip(steering_value, -0.8, 0.8)
-        if msg.data < 0.02 and msg.data > -0.02:
-            msg.data = 0.0
         
         # publish message to car
         self.steering_publisher.publish(msg)
@@ -63,7 +61,7 @@ class LaneKeep(Node):
 
         #return steering position
         if self.lane_width != 0:
-            return car_position/(self.lane_width/2)
+            return car_position/(self.lane_width)
 
     def houghLines(self, masked_Image):
         """
@@ -75,8 +73,8 @@ class LaneKeep(Node):
         lines = cv2.HoughLinesP(masked_Image, rho, theta, hough_threshold, np.array([]), minLineLength = min_line_length, maxLineGap = max_line_gap)
         return lines
         """
-        min_line_length = 17
-        max_line_gap = 8
+        min_line_length = 27
+        max_line_gap = 2
         rho = 2
         theta = np.pi / 180
         hough_threshold = 13
