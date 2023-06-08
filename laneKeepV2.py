@@ -39,11 +39,11 @@ class LaneKeep(Node):
             cv2.polylines(img, [poly], True, (255,0,0), 1)
         return img
 
-    def publishSteeringValue(self):
+    def publishSteeringValue(self, steering_value):
         # cap seering to a max value of 0.8/-0.8
         # create steering message
         msg = Float32()
-        msg.data = np.clip(self.steering_value, -0.8, 0.8)
+        msg.data = np.clip(steering_value, -0.8, 0.8)
         
         # publish message to car
         self.steering_publisher.publish(msg)
@@ -53,7 +53,7 @@ class LaneKeep(Node):
         lane_center = (right_x + left_x) / 2
         car_position = -self.img_center + lane_center
 
-        #safe steering position
+        #return steering position
         if self.lane_width != 0:
             return car_position/(self.lane_width/2)
 
@@ -193,6 +193,7 @@ class LaneKeep(Node):
         right_line_m, right_line_b, right_line_found = self.linearFit(right_lines)
         left_line_m, left_line_b, left_line_found = self.linearFit(left_lines)
         
+        steering_value = 0;
         """Calculate steering"""
         #Clculate steering values with both lines
         if right_line_found and left_line_found:
@@ -203,7 +204,7 @@ class LaneKeep(Node):
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
-            self.steering_value = self.localisation(left_x2, right_x)
+            steering_value = self.localisation(left_x2, right_x)
 
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
@@ -215,7 +216,7 @@ class LaneKeep(Node):
             #aprocimate positon of left line
             left_x2 = right_x - self.lane_width
 
-            self.steering_value = self.localisation(left_x2, right_x)
+            steering_value = self.localisation(left_x2, right_x)
 
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
@@ -227,14 +228,14 @@ class LaneKeep(Node):
             #aprocimate positon of left line
             right_x = left_x2 + self.lane_width
 
-            self.steering_value = self.localisation(left_x2, right_x)
+            steering_value = self.localisation(left_x2, right_x)
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
         
                
         # send steering value
-        self.publishSteeringValue()
+        self.publishSteeringValue(steering_value)
         # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
         visualisation_img = self.end_visualisation(visualisation_img, self.steering_value, region_of_interest)
