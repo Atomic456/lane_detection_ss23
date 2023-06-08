@@ -184,50 +184,63 @@ class LaneKeep(Node):
         
         right_line_m, right_line_b, right_line_found = self.linearFit(right_lines)
         left_line_m, left_line_b, left_line_found = self.linearFit(left_lines)
-
-        steering_value = -200
-        if right_line_found and not left_line_found:
-            # right line only
-            angle = atan(right_line_m)
-            angle = (angle * 180)/ np.pi
-            if angle > 0:
-                    angle = -90 + angle
-            else:
-                angle = 90 + angle
-
-            unscaled_steering = max(min(1.0, (angle/90)), -1.0) 
-            steering_value = unscaled_steering ** 2
-
-        elif left_line_found and not right_line_found:
-            angle = atan(left_line_m)
-            angle = (angle * 180)/ np.pi
-            if angle > 0:
-                    angle = -90 + angle
-            else:
-                angle = 90 + angle
-
-            unscaled_steering = max(min(1.0, (angle/90)), -1.0)
-            steering_value = unscaled_steering ** 2
-
-        visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
-
-        """Calculate steering values"""
+        
+        """Calculate steering"""
+        #Clculate steering values with both lines
         if right_line_found and left_line_found:
-            right_y2 = self.height - 50
+            right_y2 = self.height - 20
             if right_line_m != 0:
                 right_x2 = int((right_y2 - right_line_b) / right_line_m)
-            left_y2 = self.height - 1
+            left_y2 = self.height - 20
             if left_line_m != 0:
                 left_x2 = int((left_y2 - left_line_b) / left_line_m)
         
             # calculate relevant positione of the lane and the car
             lane_center = (right_x2 + left_x2) / 2
-            lane_width = abs(right_x2 - left_x2)
+            self.lane_width = abs(right_x2 - left_x2)
             car_position = -self.img_center + lane_center
-            print(f"lane_center: {lane_center} lane_width: {lane_width} car_position: {car_position}")
+            print(f"lane_center: {lane_center} lane_width: {self.lane_width} car_position: {car_position}")
             # calculate steering vlaue
-            if lane_width != 0:
-                steering_value = car_position/lane_width
+            if self.lane_width != 0:
+                steering_value = car_position/self.lane_width
+        #Calculate steering values with only the right line
+        elif right_line_found and not left_line_found:
+            #calculate positon of right line
+            right_y2 = self.height - 20
+            if right_line_m != 0:
+                right_x2 = int((right_y2 - right_line_b) / right_line_m)
+
+            #aprocimate positon of left line
+            left_x2 = right_x2 - self.lane_width
+
+            #calculate relevant positione of the lane and the car
+            lane_center = (right_x2 + left_x2) / 2
+            car_position = -self.img_center + lane_center
+
+            #safe steering position
+            if self.lane_width != 0:
+                steering_value = car_position/self.lane_width
+        #Calculate steering values with only the left line
+        elif left_line_found and not right_line_found:
+            #calculate positon of right line
+            left_y2 = self.height - 20
+            if left_line_m != 0:
+                left_x2 = int((left_y2 - left_line_b) / left_line_m)
+
+            #aprocimate positon of left line
+            right_x2 = left_x2 + self.lane_width
+
+            #calculate relevant positione of the lane and the car
+            lane_center = (right_x2 + left_x2) / 2
+            car_position = -self.img_center + lane_center
+
+            #safe steering position
+            if self.lane_width != 0:
+                steering_value = car_position/self.lane_width
+
+        visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
+
+        
                
         # send steering value
         self.publishSteeringValue(steering_value)
