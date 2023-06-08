@@ -197,10 +197,10 @@ class LaneKeep(Node):
         """Calculate steering"""
         #Clculate steering values with both lines
         if right_line_found and left_line_found:
-            right_y = self.height - 20
+            right_y = self.height - 40
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
-            left_y = self.height - 20
+            left_y = self.height - 40
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
@@ -209,7 +209,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
             #calculate positon of right line
-            right_y = self.height - 20
+            right_y = self.height - 40
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
 
@@ -221,7 +221,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
             #calculate positon of right line
-            left_y = self.height - 20
+            left_y = self.height - 40
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
 
