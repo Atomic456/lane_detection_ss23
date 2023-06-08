@@ -39,9 +39,9 @@ class LaneKeep(Node):
             cv2.polylines(img, [poly], True, (255,0,0), 1)
         return img
 
-    def publishSteeringValue(self, steering_value):
+    def publishSteeringValue(self):
         # cap seering to a max value of 0.8/-0.8
-        steering_value = np.clip(steering_value, -0.8, 0.8)
+        steering_value = np.clip(self.steering_value, -0.8, 0.8)
 
         # create steering message
         msg = Float32()
@@ -236,7 +236,7 @@ class LaneKeep(Node):
         
                
         # send steering value
-        self.publishSteeringValue(self.steering_value)
+        self.publishSteeringValue()
         # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
         visualisation_img = self.end_visualisation(visualisation_img, self.steering_value, region_of_interest)
