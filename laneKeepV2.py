@@ -238,7 +238,7 @@ class LaneKeep(Node):
         self.publishSteeringValue(self.steering_value)
         # visualisation        
         visualisation_img = self.line_visualisation(visualisation_img, lines)
-        visualisation_img = self.end_visualisation(visualisation_img, steering_value, region_of_interest)
+        visualisation_img = self.end_visualisation(visualisation_img, self.steering_value, region_of_interest)
 
         cv2.imshow("Visualisation", visualisation_img)
         cv2.imshow("Masked Image", masked_img)
