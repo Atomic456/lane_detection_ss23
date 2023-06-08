@@ -204,7 +204,7 @@ class LaneKeep(Node):
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
-            steering_value = self.localisation(left_x2, right_x)
+            self.steering_value = self.localisation(left_x2, right_x)
 
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
@@ -216,7 +216,7 @@ class LaneKeep(Node):
             #aprocimate positon of left line
             left_x2 = right_x - self.lane_width
 
-            steering_value = self.localisation(left_x2, right_x)
+            self.steering_value = self.localisation(left_x2, right_x)
 
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
