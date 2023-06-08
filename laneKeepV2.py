@@ -6,6 +6,7 @@ from rclpy.node import Node
 from cv_bridge import CvBridge
 from std_msgs.msg import Float32
 from sensor_msgs.msg import Image as Image
+from std_msgs.msg import Float32 as Float32
 from math import atan
 from math import sqrt
 
@@ -18,8 +19,13 @@ class LaneKeep(Node):
         self.bridge = CvBridge()
         self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
         self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
+        self.create_subscription(Float32, "/speed/speed", self.safe_speed, 10)
         self.lane_width = 320
         self.steering_value = 0
+        self.speed = 0
+
+    def safe_speed(self, speed_in: Float32):
+        self.speed = speed_in
 
     def line_visualisation(self, img, lane_lines):
         if lane_lines is not None:
@@ -202,7 +208,7 @@ class LaneKeep(Node):
             right_y = self.height - 40
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
-            left_y = self.height - 40
+            left_y = self.height - (80*self.speed)
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
         
@@ -211,7 +217,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
             #calculate positon of right line
-            right_y = self.height - 40
+            right_y = self.height - (80*self.speed)
             if right_line_m != 0:
                 right_x = int((right_y - right_line_b) / right_line_m)
 
@@ -223,7 +229,7 @@ class LaneKeep(Node):
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
             #calculate positon of right line
-            left_y = self.height - 40
+            left_y = self.height - (80*self.speed)
             if left_line_m != 0:
                 left_x2 = int((left_y - left_line_b) / left_line_m)
 
