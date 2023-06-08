@@ -48,7 +48,15 @@ class LaneKeep(Node):
         # publish message to car
         self.steering_publisher.publish(msg)
 
-    
+    def localisation(self, left_x, right_x):
+        #calculate relevant positione of the lane and the car
+        lane_center = (right_x + left_x) / 2
+        car_position = -self.img_center + lane_center
+
+        #safe steering position
+        if self.lane_width != 0:
+            return car_position/(self.lane_width/2)
+
     def houghLines(self, masked_Image):
         """
         min_line_length = self.height / 7
@@ -188,55 +196,38 @@ class LaneKeep(Node):
         """Calculate steering"""
         #Clculate steering values with both lines
         if right_line_found and left_line_found:
-            right_y2 = self.height - 20
+            right_y = self.height - 20
             if right_line_m != 0:
-                right_x2 = int((right_y2 - right_line_b) / right_line_m)
-            left_y2 = self.height - 20
+                right_x = int((right_y - right_line_b) / right_line_m)
+            left_y = self.height - 20
             if left_line_m != 0:
-                left_x2 = int((left_y2 - left_line_b) / left_line_m)
+                left_x2 = int((left_y - left_line_b) / left_line_m)
         
-            # calculate relevant positione of the lane and the car
-            lane_center = (right_x2 + left_x2) / 2
-            self.lane_width = abs(right_x2 - left_x2)
-            car_position = -self.img_center + lane_center
-            print(f"lane_center: {lane_center} lane_width: {self.lane_width} car_position: {car_position}")
-            # calculate steering vlaue
-            if self.lane_width != 0:
-                steering_value = car_position/self.lane_width
+            steering_value = self.localisation(left_x2, right_x)
+
         #Calculate steering values with only the right line
         elif right_line_found and not left_line_found:
             #calculate positon of right line
-            right_y2 = self.height - 20
+            right_y = self.height - 20
             if right_line_m != 0:
-                right_x2 = int((right_y2 - right_line_b) / right_line_m)
+                right_x = int((right_y - right_line_b) / right_line_m)
 
             #aprocimate positon of left line
-            left_x2 = right_x2 - self.lane_width
+            left_x2 = right_x - self.lane_width
 
-            #calculate relevant positione of the lane and the car
-            lane_center = (right_x2 + left_x2) / 2
-            car_position = -self.img_center + lane_center
+            steering_value = self.localisation(left_x2, right_x)
 
-            #safe steering position
-            if self.lane_width != 0:
-                steering_value = car_position/self.lane_width
         #Calculate steering values with only the left line
         elif left_line_found and not right_line_found:
             #calculate positon of right line
-            left_y2 = self.height - 20
+            left_y = self.height - 20
             if left_line_m != 0:
-                left_x2 = int((left_y2 - left_line_b) / left_line_m)
+                left_x2 = int((left_y - left_line_b) / left_line_m)
 
             #aprocimate positon of left line
-            right_x2 = left_x2 + self.lane_width
+            right_x = left_x2 + self.lane_width
 
-            #calculate relevant positione of the lane and the car
-            lane_center = (right_x2 + left_x2) / 2
-            car_position = -self.img_center + lane_center
-
-            #safe steering position
-            if self.lane_width != 0:
-                steering_value = car_position/self.lane_width
+            steering_value = self.localisation(left_x2, right_x)
 
         visualisation_img = cv2.cvtColor(gray_scale_img, cv2.COLOR_GRAY2BGR)
 
