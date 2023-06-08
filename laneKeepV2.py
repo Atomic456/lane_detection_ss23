@@ -18,6 +18,7 @@ class LaneKeep(Node):
         self.bridge = CvBridge()
         self.steering_publisher = self.create_publisher(Float32, "/pid/steering", 10)
         self.create_subscription(Image, "/perception/image_gray8", self.laneKeep, 10)
+        self.lane_width = 0
 
     def line_visualisation(self, img, lane_lines):
         if lane_lines is not None:
